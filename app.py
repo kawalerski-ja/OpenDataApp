@@ -15,24 +15,26 @@ st.title("System Analiz Przestrzennych Krakowa (Siatka Heksagonalna)")
 def load_data():
     gdf = gpd.read_parquet('krakow_master_grid_komplet.parquet')
     
-    infra_flags = [c for c in ['czy_zawiera_sport', 'czy_zawiera_edukacje', 'czy_zawiera_mops', 'czy_zawiera_pitnik'] if c in gdf.columns]
+    # Zbiorczy wskaźnik infrastruktury i agregacja WSZYSTKICH nazw obiektów
+    infra_flags = [c for c in gdf.columns if 'czy_zawiera_' in c or c == 'czy_przystanek_do_100m']
     if infra_flags:
-        gdf['indeks_infrastruktury'] = gdf[infra_flags].sum(axis=1)
+        gdf['indeks_infrastruktury'] = gdf[[c for c in infra_flags if c in gdf.columns]].sum(axis=1)
     else:
         gdf['indeks_infrastruktury'] = 0
 
-    name_cols = [c for c in ['nazwy_edukacja', 'nazwy_sport', 'nazwy_mops'] if c in gdf.columns]
+    # Agregacja wszystkich kolumn tekstowych zawierających nazwy obiektów
+    name_cols = [c for c in gdf.columns if 'nazwa' in c or 'nazwy' in c]
     def get_combined_names(row):
         collected = []
         for col in name_cols:
             val = row.get(col)
-            if pd.notna(val) and val != 'Brak':
-                collected.append(str(val))
-        return " | ".join(collected) if collected else "Brak nazwanych obiektow"
+            if pd.notna(val) and str(val).strip() != '' and str(val).strip() != 'Brak' and str(val).strip() != 'Brak nazwanych obiektow':
+                collected.append(f"{col}: {val}")
+        return " | ".join(collected) if collected else "Brak obiektow"
     
     gdf['zbiorcze_nazwy_infra'] = gdf.apply(get_combined_names, axis=1)
 
-    # Zabezpieczenie nazwy kolumny z przystankami
+    # Zabezpieczenie kolumny z przystankami
     if 'nazwy_przystankow' not in gdf.columns:
         p_cols = [c for c in gdf.columns if 'przystank' in c and c != 'czy_przystanek_do_100m']
         if p_cols:
@@ -109,7 +111,7 @@ if not show_all and selected_address:
 
 st.sidebar.markdown("### Warstwa Wizualna Mapy")
 layers_dict = {
-    'Infrastruktura (Szkoly, Sport, MOPS...)': 'indeks_infrastruktury',
+    'Infrastruktura (Zbiorcza)': 'indeks_infrastruktury',
     'Przystanki KMK': 'czy_przystanek_do_100m',
     'Predkosc wiatru (v4m)': 'wentyl_predkosc_v4m',
     'Potencjal wentylacji': 'wentyl_potencjal',
@@ -124,7 +126,7 @@ selected_label = st.sidebar.selectbox(
 )
 selected_column = layers_dict[selected_label]
 
-# Przygotowanie skali kolorow (heatmapy) dla zmiennych ciaglych
+# Skala kolorów (heatmapa) dla zmiennych ciągłych
 colormap = None
 if selected_column not in ['indeks_infrastruktury', 'czy_przystanek_do_100m']:
     valid_vals = display_gdf[selected_column].dropna()
@@ -134,11 +136,11 @@ if selected_column not in ['indeks_infrastruktury', 'czy_przystanek_do_100m']:
             vmax = vmin + 1.0
         
         if 'halas' in selected_column:
-            colors = ['#2ca02c', '#ff7f0e', '#d62728'] # Zielony -> Zolty -> Czerwony
+            colors = ['#2ca02c', '#ff7f0e', '#d62728']
         elif 'wentyl' in selected_column:
-            colors = ['#d73027', '#fee08b', '#1a9850'] # Czerwony -> Zolty -> Zielony
+            colors = ['#d73027', '#fee08b', '#1a9850']
         else:
-            colors = ['#fee8c8', '#e34a33'] # Jasny -> Ciemny
+            colors = ['#fee8c8', '#e34a33']
             
         colormap = cm.LinearColormap(colors=colors, vmin=vmin, vmax=vmax)
 
@@ -155,7 +157,6 @@ def style_function(feature):
     elif selected_column == 'czy_przystanek_do_100m':
         return {'fillColor': '#2b8cbe', 'color': '#045a8d', 'weight': 0.5, 'fillOpacity': 0.65}
     
-    # Renderowanie efektu heatmapy dla zmiennych ciaglych
     if colormap is not None and isinstance(val, (int, float)):
         color = colormap(val)
         return {'fillColor': color, 'color': color, 'weight': 0.5, 'fillOpacity': 0.7}
@@ -167,7 +168,6 @@ Draw(
     edit_options={'edit': False}
 ).add_to(m)
 
-# Ustawienie odpowiedniego pola w dymku (bez GRID_ID)
 if selected_column == 'indeks_infrastruktury':
     tooltip_field = 'zbiorcze_nazwy_infra'
     tooltip_alias = 'Obiekty:'
@@ -189,7 +189,6 @@ folium.GeoJson(
     )
 ).add_to(m)
 
-# Dodanie legendy heatmapy do mapy, jesli dotyczy zmiennej ciaglej
 if colormap is not None:
     colormap.caption = f"Skala: {selected_label}"
     colormap.add_to(m)
@@ -201,7 +200,7 @@ with col_map:
     map_data = st_folium(m, width="100%", height=600)
 
 with col_stats:
-    st.subheader("Statystyki Zaznaczonego Obszaru")
+    st.subheader("Panel Podsumowania Obszaru")
     
     drawn_geojson = None
     if map_data and 'last_active_drawing' in map_data and map_data['last_active_drawing']:
@@ -215,25 +214,120 @@ with col_stats:
         if count_hex > 0:
             st.success(f"Zaznaczono heksagonow: {count_hex}")
             
+            st.session_state['obszar_analityczny'] = selected_hexagons.drop(columns='geometry', errors='ignore')
+            
+            # 1. MPZP
+            mpzp_cols = [c for c in selected_hexagons.columns if 'mpzp' in c.lower() or 'plan' in c.lower()]
+            st.markdown("**MPZP / Uwarunkowania planistyczne:**")
+            if mpzp_cols:
+                col_name = mpzp_cols[0]
+                raw_mpzp = selected_hexagons[col_name]
+                valid_mpzp = raw_mpzp[
+                    raw_mpzp.notna() & 
+                    (raw_mpzp.astype(str).str.strip() != '') & 
+                    (raw_mpzp.astype(str).str.lower() != 'brak') &
+                    (raw_mpzp.astype(str).str.lower() != 'nan')
+                ]
+                unique_plans_count = valid_mpzp.nunique()
+                if unique_plans_count > 0:
+                    st.write(f"Liczba zidentyfikowanych typow planow w obszarze: {unique_plans_count}")
+                    with st.expander("Zobacz pelna liste planow w zaznaczeniu"):
+                        st.write(valid_mpzp.unique().tolist())
+                else:
+                    st.write("Brak obowiazujacego planu MPZP w zaznaczonym obszarze.")
+            else:
+                st.write("Brak dedykowanej kolumny MPZP w zbiorze danych.")
+
+            st.markdown("---")
+
+            # 2. Ceny nieruchomości
+            st.markdown("**Rynek Nieruchomosci:**")
             if 'cena_sr_za_m2' in selected_hexagons.columns:
                 valid_prices = selected_hexagons['cena_sr_za_m2'].dropna()
                 if not valid_prices.empty:
                     st.metric("Srednia cena m2", f"{valid_prices.mean():,.0f} PLN/m2".replace(",", " "))
+                    st.write(f"Zakres cenowy: {valid_prices.min():,.0f} - {valid_prices.max():,.0f} PLN/m2".replace(",", " "))
                 else:
-                    st.metric("Srednia cena m2", "Brak danych")
-                    
+                    st.metric("Srednia cena m2", "Brak transakcji w obszarze")
+            else:
+                st.write("Brak danych cenowych.")
+
+            st.markdown("---")
+
+            # 3. Warunki Środowiskowe
+            st.markdown("**Warunki Srodowiskowe (Wartosci Srednie):**")
             if 'max_halas_dB' in selected_hexagons.columns:
                 valid_noise = selected_hexagons['max_halas_dB'].dropna()
-                if not valid_noise.empty:
-                    st.metric("Sredni halas drogowy", f"{valid_noise.mean():.1f} dB")
-                else:
-                    st.metric("Sredni halas drogowy", "Brak pomiarow")
-                    
+                st.write(f"- Halas drogowy: {valid_noise.mean():.1f} dB" if not valid_noise.empty else "- Halas drogowy: Brak pomiarow")
+            if 'max_halas_szyny_dB' in selected_hexagons.columns:
+                valid_rail = selected_hexagons['max_halas_szyny_dB'].dropna()
+                st.write(f"- Halas szynowy: {valid_rail.mean():.1f} dB" if not valid_rail.empty else "- Halas szynowy: Brak pomiarow")
             if 'wentyl_predkosc_v4m' in selected_hexagons.columns:
                 valid_wind = selected_hexagons['wentyl_predkosc_v4m'].dropna()
-                if not valid_wind.empty:
-                    st.metric("Srednia predkosc wiatru", f"{valid_wind.mean():.2f} m/s")
+                st.write(f"- Predkosc wiatru (v4m): {valid_wind.mean():.2f} m/s" if not valid_wind.empty else "- Predkosc wiatru: Brak danych")
+            if 'wentyl_potencjal' in selected_hexagons.columns:
+                valid_pot = selected_hexagons['wentyl_potencjal'].dropna()
+                st.write(f"- Potencjal wentylacji: {valid_pot.mean():.2f}" if not valid_pot.empty else "- Potencjal wentylacji: Brak danych")
+
+            st.markdown("---")
+
+            # 4. Przejrzyste podsumowanie obiektów z podziałem na czytelne kategorie
+            st.markdown("**Zasoby Infrastrukturalne w Obszarze:**")
+            
+            # Mapowanie nazw kolumn na ludzkie kategorie
+            category_mapping = {
+                'sport': 'Sport i Rekreacja',
+                'edukacja': 'Edukacja',
+                'zdrowie': 'Zdrowie i Medycyna',
+                'mops': 'Opieka Społeczna (MOPS)',
+                'korytarzy_zieleni': 'Korytarze i Tereny Zielone',
+                'cas': 'Centra Aktywności Seniora (CAS)',
+                'pitnik': 'Pitniki',
+                'przystank': 'Przystanki Komunikacji Miejskiej'
+            }
+
+            name_cols = [c for c in selected_hexagons.columns if 'nazwa' in c or 'nazwy' in c]
+            categorized_objects = {}
+
+            for col in name_cols:
+                # Ustalamy czytelną kategorię na podstawie nazwy kolumny
+                cat_label = "Inne obiekty"
+                for key, label in category_mapping.items():
+                    if key in col.lower():
+                        cat_label = label
+                        break
+                
+                if cat_label not in categorized_objects:
+                    categorized_objects[cat_label] = set()
+
+                for val in selected_hexagons[col].dropna():
+                    text_val = str(val).strip()
+                    if text_val and text_val not in ['Brak', 'Brak obiektow', 'Brak informacji o przystankach']:
+                        # Czyszczenie brzydkich dopisków typu "(Brak statusu)"
+                        cleaned_val = text_val.replace("(Brak statusu)", "").strip()
+                        if cleaned_val:
+                            # Rozdzielamy po przecinkach lub pionowych kreskach, jeśli w jednej komórce jest wiele obiektów
+                            parts = [p.strip() for p in cleaned_val.replace('|', ',').split(',') if p.strip()]
+                            for p in parts:
+                                if p.lower() not in ['brak', 'nan']:
+                                    categorized_objects[cat_label].add(p)
+
+            # Wyświetlanie w formie ładnych list
+            total_found_objects = 0
+            for cat, items in categorized_objects.items():
+                if items:
+                    sorted_items = sorted(list(items))
+                    total_found_objects += len(sorted_items)
+                    with st.expander(f"{cat} ({len(sorted_items)})"):
+                        for item in sorted_items:
+                            st.markdown(f"- {item}")
+
+            if total_found_objects == 0:
+                st.write("Brak zidentyfikowanych obiektów w zaznaczonym obszarze.")
+
         else:
             st.warning("Narysowany obszar nie pokrywa zadnego widocznego heksagonu.")
+            if 'obszar_analityczny' in st.session_state:
+                del st.session_state['obszar_analityczny']
     else:
-        st.info("Wyszukaj adres lub uzyj narzedzia rysowania na mapie.")
+        st.info("Wyszukaj adres lub uzyj narzedzia rysowania na mapie, aby wygenerowac podsumowanie obszaru.")

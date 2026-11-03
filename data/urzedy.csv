@@ -1,0 +1,111 @@
+﻿OBJECTID;x;y;nazwa;adres;strona_www;bip;kategoria;kategoria_administracja;godziny_otwarcia;wydział;skrót;GRID_ID
+1;7423508.483;5544383.285;Krakowski Holding Komunalny S.A. w Krakowie;ul. Jana Brożka 3, 30-347 Kraków;http://www.khk.krakow.pl;http://www.khk.krakow.pl/bip/;Spółki;miejskie_jednostki_organizacyjne;;;;DE-101
+2;7423508.483;5544383.285;Miejskie Przedsiębiorstwo Komunikacyjne S.A. w Krakowie;ul. Brożka 3, 30-347 Kraków;http://www.mpk.krakow.pl/;http://bip.mpk.krakow.pl/;Spółki;miejskie_jednostki_organizacyjne;;;;DE-101
+3;7422770.077;5547159.718;Wodociągi Miasta Krakowa S.A. ;ul. Senatorska 1, 30-106 Kraków;https://wodociagi.krakow.pl/;http://bip.mpwik.krakow.pl/;Spółki;miejskie_jednostki_organizacyjne;;;;CW-75
+4;7427644.62;5548546.704;Arena Kraków S.A.;ul. Stanisława Lema 7, 31-571 Kraków;http://www.arenakrakow.pl/;https://www.bip.krakow.pl/?bip_id=613;Spółki;miejskie_jednostki_organizacyjne;;;;EX-62
+5;7422363.806;5549141.202;Agencja Rozwoju Miasta Krakowa sp. z o.o.;ul. Królewska 57, 30-081 Kraków;http://armk.pl;https://www.bip.krakow.pl/?bip_id=620;Spółki;miejskie_jednostki_organizacyjne;;;;CS-56
+6;7419706.624;5550099.796;Centrum Giełdowe Balicka sp. z o.o.;ul. Balicka 56, 30-149 Kraków;http://balicka.pl;http://balicka.pl/site/bip;Spółki;miejskie_jednostki_organizacyjne;;;;BP-48
+7;7428812.28;5548659.464;Miejskie Przedsiębiorstwo Oczyszczania sp. z o.o.;ul. Nowohucka 1, 31-580 Kraków;http://www.mpo.krakow.pl/;http://bip.mpo.krakow.pl/;Spółki;miejskie_jednostki_organizacyjne;;;;FJ-61
+8;7432697.928;5550444.47;Grodzki Urząd Pracy w Krakowie;ul. Wąwozowa 34, 31-752 Kraków;https://www.gupkrakow.pl;https://www.bip.krakow.pl/?bip_id=28;Inne podmioty;miejskie_jednostki_organizacyjne;;;;GZ-45
+9;7425954.81;5545244.285;Powiatowy Inspektorat Nadzoru Budowlanego w Krakowie;ul. Wielicka 28A, 30-552 Kraków;https://www.pinb-grodzki.krakow.pl/;https://www.bip.krakow.pl/?bip_id=44;Inne podmioty;miejskie_jednostki_organizacyjne;;;;EF-93
+10;7424000.045;5550193.236;Szpital Miejski Specjalistyczny im. Gabriela Narutowicza w Krakowie;ul. Prądnicka 35-37, 31-202 Kraków;https://www.narutowicz.krakow.pl;https://www.bip.krakow.pl/?bip_id=41;Zdrowie;miejskie_jednostki_organizacyjne;;;;DJ-47
+11;7431713.061;5548171.91;Szpital im. Stefana Żeromskiego ;os. Na Skarpie 66, 31-913 Kraków;https://www.zeromski-szpital.pl;https://www.bip.krakow.pl/?bip_id=40;Zdrowie;miejskie_jednostki_organizacyjne;;;;GO-65
+12;7428786.633;5541971.001;Miejskie Centrum Opieki dla Osób Starszych, Przewlekle Niepełnosprawnych oraz Niesamodzielnych w Krakowie;ul.Wielicka 267, 30-663 Kraków;http://www.mco.krakow.pl;https://www.bip.krakow.pl/?bip_id=39;Zdrowie;miejskie_jednostki_organizacyjne;;;;FJ-123
+13;7427051.079;5551555.528;Miejskie Centrum Profilaktyki Uzależnień w Krakowie;ul. Rozrywka 1, 31-419 Kraków;https://www.mcpu.krakow.pl;https://www.bip.krakow.pl/?bip_id=37;Porządek publiczny i bezpieczeństwo;miejskie_jednostki_organizacyjne;;;;EQ-34
+14;7429758.103;5548854.905;Straż Miejska Miasta Krakowa;al. Jana Pawła II 188, 31-982 Kraków;https://www.strazmiejska.krakow.pl/;https://www.bip.krakow.pl/?bip_id=33;Porządek publiczny i bezpieczeństwo;miejskie_jednostki_organizacyjne;;;;FT-59
+15;7431830.246;5549422.725;Zarząd Infrastruktury Wodnej w Krakowie;os. Szkolne 27, 31-977 Kraków;https://ziw.krakow.pl/;https://www.bip.krakow.pl/?bip_id=627;Komunalne;miejskie_jednostki_organizacyjne;;;;GQ-54
+16;7421561.895;5550548.419;Zarząd Budynków Komunalnych w Krakowie;ul. Bolesława Czerwieńskiego 16, 31-319 Kraków;https://www.zbk-krakow.pl;https://www.bip.krakow.pl/?bip_id=32;Komunalne;miejskie_jednostki_organizacyjne;;;;CJ-44
+17;7425298.154;5549114.217;Zarząd Cmentarzy Komunalnych;ul. Rakowicka 26, 31-510 Kraków;http://www.zck-krakow.pl;https://www.bip.krakow.pl/?bip_id=489;Komunalne;miejskie_jednostki_organizacyjne;;;;DX-57
+18;7428940.328;5547959.15;Zarząd Dróg Miasta Krakowa;ul. Centralna 53, 31-586 Kraków;http://www.zdmk.krakow.pl;https://www.bip.krakow.pl/?bip_id=511;Komunalne;miejskie_jednostki_organizacyjne;;;;FL-68
+19;7422183.799;5548142.699;Zarząd Inwestycji Miejskich w Krakowie;ul. Władysława Reymonta 20, 30-059 Kraków;https://www.zim.krakow.pl;https://www.bip.krakow.pl/?bip_id=582;Komunalne;miejskie_jednostki_organizacyjne;;;;CQ-66
+20;7425247.259;5543719.478;Zarząd Infrastruktury Sportowej w Krakowie;ul. Walerego Sławka 10, 30-633 Kraków;https://www.zis.krakow.pl;https://www.bip.krakow.pl/?bip_id=512;Komunalne;miejskie_jednostki_organizacyjne;;;;DX-107
+21;7424329.697;5547520.419;Zarząd Transportu Publicznego w Krakowie;ul. Wielopole 1, 31-072 Kraków;http://www.ztp.krakow.pl;https://www.bip.krakow.pl/?bip_id=616;Komunalne;miejskie_jednostki_organizacyjne;;;;DN-72
+22;7422183.799;5548142.699;Zarząd Zieleni Miejskiej w Krakowie;ul. W. Reymonta 20, 30-059 Kraków;https://www.zzm.krakow.pl;https://www.bip.krakow.pl/?bip_id=567;Komunalne;miejskie_jednostki_organizacyjne;;;;CQ-66
+23;7427387.739;5549435.955;Miejskie Centrum Obsługi Oświaty w Krakowie;ul. Ułanów 9a, 31-450 Kraków;https://www.mcoo.krakow.pl/;https://www.bip.krakow.pl/?bip_id=139;Edukacja;miejskie_jednostki_organizacyjne;;;;EU-53
+24;;;Miejskie Przedsiębiorstwo Energetyki Cieplnej S.A.;al. Pokoju 81, 30-969 Kraków;http://mpec.krakow.pl/;https://bip.mpec.krakow.pl;Spółki;miejskie_jednostki_organizacyjne;;;;FK-64
+25;;;Trasa Łagiewnicka S.A.;ul. Józefa Marcika 14C, 30-443 Kraków;http://trasalagiewnicka.krakow.pl/;https://www.bip.krakow.pl/?bip_id=614;Spółki;miejskie_jednostki_organizacyjne;;;;DD-122
+26;;;KRAKÓW5020 sp. z o.o.;ul. Marii Konopnickiej 17, 30-087 Kraków;http://k5020.pl;http://bip.k5020.pl;Spółki;miejskie_jednostki_organizacyjne;;;;DE-82
+27;;;;pl. Wszystkich Świętych 3-4, 31-004 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123227;;;DI-72
+28;;;;al. Powstania Warszawskiego 10, 31-541 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123228;;;EB-69
+29;;;;ul. Wielicka 28a, 30-552 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123229;;;EF-93
+30;;;;os. Zgody 2, 31-949 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123230;;;GE-54
+31;;;;Rynek Podgórski 1, 30-533 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123231;;;DS-86
+32;;;;ul. Grunwaldzka 8, 31-526 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123232;;;EE-63
+33;;;;ul. Kasprowicza 29, 31-523 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123233;;;EG-62
+34;;;;ul. Stachowicza 18, 30-103 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123234;;;CX-76
+35;;;;ul. Mogilska 41, 31-545 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123235;;;EF-65
+36;;;;ul. Lubelska 27, 30-003 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123236;;;DH-56
+37;;;;Galeria Handlowa, ul. Stawowa 61, lokal nr 157, 31-346 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123237;;;CF-36
+38;;;;Galeria Handlowa, ul. Stawowa 61, lokal nr 193, 31-346 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123238;;;CF-36
+39;;;;Galeria Handlowa, ul. Kamieńskiego 11, lokal nr G26, 30-644 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123239;;;DU-104
+40;;;;Centrum Handlowe, al. Gen. Tadeusza Bora-Komorowskiego 41, lokal nr B213, 31-876 Kraków;;;;um_dzienniki_podawcze;https://www.bip.krakow.pl/?dok_id=123227;;;EU-42
+41;;;;"Plac Wszystkich Świętych 3-4,
+31-004 Kraków";;https://www.bip.krakow.pl/struktura/AM;;um_glowne_lokalizacje;;Biuro Architekta Miasta ; AM;DI-72
+42;;;;"Wielopole 17A,
+31-072 Kraków";;https://www.bip.krakow.pl/struktura/BD;;um_glowne_lokalizacje;;Biuro ds. Dzielnic Miasta Krakowa ; BD;DP-73
+43;;;;"Basztowa 20,
+31-156 Kraków";;https://www.bip.krakow.pl/struktura/NW;;um_glowne_lokalizacje;;Biuro Nadzoru Właścicielskiego ; NW;DN-65
+44;;;;"Wielopole 17A,
+31-072 Kraków";;https://www.bip.krakow.pl/struktura/CA;;um_glowne_lokalizacje;;Centrum Audytu i Kontroli Analitycznej ; CA;DP-73
+45;;;;"Basztowa 20,
+31-156 Kraków";;https://www.bip.krakow.pl/struktura/IT;;um_glowne_lokalizacje;;Centrum Obsługi Informatycznej ; IT;DN-65
+46;;;;"Plac Wszystkich Świętych 3-4,
+31-004 Kraków";;https://www.bip.krakow.pl/struktura/KP;;um_glowne_lokalizacje;;Kancelaria Prezydenta ; KP;DI-72
+47;;;;"Plac Wszystkich Świętych 3-4,
+31-004 Kraków";;https://www.bip.krakow.pl/struktura/BR;;um_glowne_lokalizacje;;Kancelaria Rady Miasta Krakowa ; BR;DI-72
+48;;;;"Stachowicza 18,
+30-103 Kraków";;https://www.bip.krakow.pl/struktura/SO;;um_glowne_lokalizacje;;Krakowskie Centrum Świadczeń ; SO;CX-76
+49;;;;"Lubelska 27,
+30-003 Kraków";;https://www.bip.krakow.pl/struktura/S.C.;;um_glowne_lokalizacje;;Urząd Stanu Cywilnego ; SC;DH-56
+50;;;;"Mogilska 41,
+31-545 Kraków";;https://www.bip.krakow.pl/struktura/AU;;um_glowne_lokalizacje;;Wydział Architektury i Urbanistyki ; AU;EF-65
+51;;;;"Osiedle Zgody 2,
+31-949 Kraków";;https://www.bip.krakow.pl/struktura/OC;;um_glowne_lokalizacje;;Wydział Bezpieczeństwa i Zarządzania Kryzysowego ; OC;GE-54
+52;;;;"Plac Wszystkich Świętych 3-4,
+31-004 Kraków";;https://www.bip.krakow.pl/struktura/BM;;um_glowne_lokalizacje;;Wydział Budżetu Miasta ; BM;DI-72
+53;;;;"Aleja Powstania Warszawskiego 10,
+31-541 Kraków";;https://www.bip.krakow.pl/struktura/DK;;um_glowne_lokalizacje;;Wydział Dialogu, Konsultacji i Kontaktu Obywatelskiego ; DK;EB-69
+54;;;;"Zabłocie 22,
+30-701 Kraków";;https://www.bip.krakow.pl/struktura/PI;;um_glowne_lokalizacje;;Wydział ds. Przedsiębiorczości i Innowacji ; PI;EF-81
+55;;;;"Bracka 10,
+31-005 Kraków";;https://www.bip.krakow.pl/struktura/WT;;um_glowne_lokalizacje;;Wydział ds. Turystyki ; WT;DI-70
+56;;;;"Stachowicza 18,
+30-103 Kraków";;https://www.bip.krakow.pl/struktura/EK;;um_glowne_lokalizacje;;Wydział Edukacji i Projektów Edukacyjnych ; EK;CX-76
+57;;;;"Aleja Powstania Warszawskiego 10,
+31-541 Kraków";;https://www.bip.krakow.pl/struktura/EW;;um_glowne_lokalizacje;;Wydział Egzekucji Administracyjnej i Windykacji ; EW;EB-69
+58;;;;"Aleja Powstania Warszawskiego 10,
+31-541 Kraków";;https://www.bip.krakow.pl/struktura/KM;;um_glowne_lokalizacje;;Wydział Ewidencji Pojazdów i Kierowców ; KM;EB-69
+59;;;;"Plac Wszystkich Świętych 3-4,
+31-004 Kraków";;https://www.bip.krakow.pl/struktura/FK;;um_glowne_lokalizacje;;Wydział Finansowy ; FK;DI-72
+60;;;;"Grunwaldzka 8,
+31-526 Kraków";;https://www.bip.krakow.pl/struktura/GD;;um_glowne_lokalizacje;;Wydział Geodezji ; GD;EE-63
+61;;;;"Wielopole 17A,
+31-072 Kraków";;https://www.bip.krakow.pl/struktura/GK;;um_glowne_lokalizacje;;Wydział Gospodarki Komunalnej i Infrastruktury ; GK;DP-73
+62;;;;"Plac Wszystkich Świętych 3-4,
+31-004 Kraków";;https://www.bip.krakow.pl/struktura/KS;;um_glowne_lokalizacje;;Wydział Komunikacji Społecznej ; KS;DI-72
+63;;;;"Wielopole 17A,
+31-072 Kraków";;https://www.bip.krakow.pl/struktura/KD;;um_glowne_lokalizacje;;Wydział Kultury ; KD;DP-73
+64;;;;"Rynek Podgórski 1,
+30-533 Kraków";;https://www.bip.krakow.pl/struktura/ML;;um_glowne_lokalizacje;;Wydział Mieszkalnictwa ; ML;DS-86
+65;;;;"Plac Wszystkich Świętych 3-4,
+31-004 Kraków";;https://www.bip.krakow.pl/struktura/OU;;um_glowne_lokalizacje;;Wydział Obsługi Urzędu ; OU;DI-72
+66;;;;"Plac Wszystkich Świętych 3-4,
+31-004 Kraków";;https://www.bip.krakow.pl/struktura/OR;;um_glowne_lokalizacje;;Wydział Organizacji i Nadzoru ; OR;DI-72
+67;;;;"Mogilska 41,
+31-545 Kraków";;https://www.bip.krakow.pl/struktura/BP;;um_glowne_lokalizacje;;Wydział Planowania Przestrzennego ; BP;EF-65
+68;;;;"Aleja Powstania Warszawskiego 10,
+31-541 Kraków";;https://www.bip.krakow.pl/struktura/PD;;um_glowne_lokalizacje;;Wydział Podatków i Opłat ; PD;EB-69
+69;;;;"Jana Dekerta 24,
+30-703 Kraków";;https://www.bip.krakow.pl/struktura/SZ;;um_glowne_lokalizacje;;Wydział Polityki Społecznej, Równości i Zdrowia ; SZ;EG-83
+70;;;;"Kasprowicza 29,
+31-523 Kraków";;https://www.bip.krakow.pl/struktura/GS;;um_glowne_lokalizacje;;Wydział Skarbu Miasta ; GS;EG-62
+71;;;;"Walerego Sławka 10,
+30-633 Kraków";;https://www.bip.krakow.pl/struktura/SP;;um_glowne_lokalizacje;;Wydział Sportu ; SP;DX-107
+72;;;;"Aleja Powstania Warszawskiego 10,
+31-541 Kraków";;https://www.bip.krakow.pl/struktura/SA;;um_glowne_lokalizacje;;Wydział Spraw Administracyjnych ; SA;EB-69
+73;;;;"Osiedle Zgody 2,
+31-949 Kraków";;https://www.bip.krakow.pl/struktura/WS;;um_glowne_lokalizacje;;Wydział Środowiska, Klimatu i Powietrza ; WS;GE-54
+74;;;;"Sarego 4,
+31-047 Kraków";;https://www.bip.krakow.pl/struktura/SI;;um_glowne_lokalizacje;;Wydział Strategii i Funduszy Europejskich ; SI;DL-74
+75;;;;"Plac Wszystkich Świętych 3-4,
+31-004 Kraków";;https://www.bip.krakow.pl/struktura/PR;;um_glowne_lokalizacje;;Zespół Radców Prawnych ; PR;DI-72

@@ -1,0 +1,24 @@
+﻿OBJECTID;nazwa;telefon;dzielnica;adres;telefon_2;typ_jednostki;y;x;kategoria_admin;lp;ulica;numer;kod_pocztowy;komisariat;rodzaj;GRID_ID
+1;Komisariat policji VIII;12 615 29 10;XIV i XVIII;Osiedle Zgody 10,31-950 Kraków;998;Policja;50.076079;20.035955;komisariaty_policji;;;;;;;GH-55
+2;Komisariat policji I (Stare Miasto);12 615 29 14;I; Szeroka 35,31-053 Kraków;998;Policja;50.052338;19.947922;komisariaty_policji;;;;;;;DR-79
+3;Komisariat policji II (Stare Miasto);12 615 29 15;II;Lubicz 21, 31-503 Kraków;998;Policja;50.064882;19.950554;komisariaty_policji;;;;;;;DT-66
+4;Komisariat policji VI (Prokocim-Bieżanów);12 615 29 17;X, XI i XII;Ćwiklińskiej 4, 30-812 Kraków;998;Policja;50.016022;20.014758;komisariaty_policji;;;;;;;FP-117
+5;Komisariat policji V (Podgórze);12 615 29 16;VIII, IX i XIII;Jana Zamoyskiego 20/22, 30-523 Kraków;998;Policja;50.042666;19.947264;komisariaty_policji;;;;;;;DQ-88
+6;Komisariat policji VII;47 835 29 11;XVI;osiedle Złotej Jesieni 11c, 94-293 Kraków;998;Policja;50.091212;20.026919;komisariaty_policji;;;;;;;GA-39
+7;Komisariat policji III;12 615 29 12;III;Strzelców 16, 31-422 Kraków;998;Policja;50.0942;19.977229;komisariaty_policji;;;;;;;EO-35
+8;Komisariat policji IV (Krowodrza);12 615 29 13;V, VI i VII;Królewska 4, 30-045 Kraków;998;Policja;50.070262;19.92408;komisariaty_policji;;;;;;;CZ-60
+9;;;;;;;;;posterunki_policji;1.0;Szeroka ;35;31-053;I;Siedziba główna;DR-79
+10;;;;;;;;;posterunki_policji;2.0;Pędzichów;5;31-148 ;I;siedziba pomocnicza;DJ-61
+11;;;;;;;;;posterunki_policji;3.0;Rynek Główny;29;31-010;I;siedziba pomocnicza;DH-69
+12;;;;;;;;;posterunki_policji;4.0;Lubicz;21;31-503;II;Siedziba główna;DT-66
+13;;;;;;;;;posterunki_policji;5.0;Strzelców;16;31-422;III;Siedziba główna;EO-35
+14;;;;;;;;;posterunki_policji;6.0;Królewska ;4;30-045;IV;Siedziba główna;CZ-60
+15;;;;;;;;;posterunki_policji;7.0;Radzikowskiego;29;31-249;IV;siedziba pomocnicza;CJ-46
+16;;;;;;;;;posterunki_policji;8.0;Zamoyskiego;20/22;30-523;V;Siedziba główna;DQ-88
+17;;;;;;;;;posterunki_policji;9.0;Mieczysławy Ćwiklińskiej;4;30-863;VI;Siedziba główna;FP-117
+18;;;;;;;;;posterunki_policji;10.0;os. Złotej Jesieni;11c;31-827;VII;Siedziba główna;GA-39
+19;;;;;;;;;posterunki_policji;11.0;os. Zgody;10;31-950;VIII;Siedziba główna;GH-55
+20;;;;;;;;;posterunki_policji;12.0;Mogilska;109;31-571;Komenda Wojewódzka;Komenda Wojewódzka;EO-63
+21;;;;;;;;;posterunki_policji;13.0;Henryka Siemiradzkiego;24;31-137;Komenda Miejska Policji w Krakowie;Komenda Miejska Policji w Krakowie;DC-61
+22;;;;;;;;;posterunki_policji;14.0;Tyniecka;16;30-323;Komisariat Wodny Policji w Krakowie;Komisariat Wodny Policji w Krakowie;CU-80
+23;;;;;;;;;posterunki_policji;15.0;Władysława Łokietka;205;31-263;Komenda Powiatowa Policji w Krakowie;Komenda Powiatowa Policji w Krakowie;CM-23

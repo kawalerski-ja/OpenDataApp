@@ -60,19 +60,38 @@ ACTIVE = list(LABELS)
 
 st.markdown("""
 <style>
-.block-container {max-width: 1420px; padding-top: 1.3rem; padding-bottom: 2.5rem}
-.hero {background:linear-gradient(110deg,#143e4a,#147c75);color:white;
-       border-radius:18px;padding:1.6rem 2rem;margin-bottom:1rem}
-.hero h1 {color:white!important;margin:0 0 .4rem 0;font-size:2rem}
-.hero p {margin:0;color:#e4f5f1}
-div[data-testid="stButton"] button {border-radius:9px}
+  :root { --green:#0d766c; --ink:#18334a; }
+  .block-container { max-width: 1400px; padding-top:1.35rem; padding-bottom:3.1rem; }
+  [data-testid="stHeader"] { background:transparent; }
+  .hero-card {background:linear-gradient(115deg,#103c48 0%,#146b6b 73%,#1c8d7b 100%);
+       border-radius:22px; padding:27px 34px; color:white; margin-bottom:22px;
+       box-shadow:0 14px 35px rgba(9,54,61,.12); }
+  .hero-kicker {text-transform:uppercase;letter-spacing:2px;font-weight:700;font-size:.73rem;opacity:.83;}
+  .hero-title {font-size:2.12rem;line-height:1.18;font-weight:780;letter-spacing:-.035em;margin:9px 0 9px;}
+  .hero-sub {font-size:1rem;color:#d9f1ed;max-width:780px;}
+  .section-kicker {color:#0b8271;letter-spacing:.09em;font-size:.72rem;text-transform:uppercase;font-weight:750;}
+  .section-title {color:inherit;font-size:1.4rem;line-height:1.25;font-weight:770;margin:4px 0 14px;}
+  .section-hint {opacity:.7;font-size:.92rem;margin:-7px 0 15px;}
+  div[data-testid="stForm"] {border:1px solid rgba(116,137,143,.18);border-radius:18px;padding:18px 24px;background:rgba(132,153,148,.045);}
+  .stButton > button, .stFormSubmitButton > button {border-radius:11px;min-height:43px;font-weight:650;}
+  div[data-testid="stSelectbox"] > div,div[data-testid="stMultiSelect"] > div {border-radius:11px;}
+  .result-strip {margin:8px 0 10px;font-size:.87rem;opacity:.72;}
+  .number-bubble {display:inline-flex;align-items:center;justify-content:center;min-width:27px;height:27px;border-radius:9px;background:#e2f3f0;color:#0d766c;font-size:.8rem;font-weight:750;margin-right:7px;}
+  .result-title {font-weight:750;font-size:.97rem;color:inherit;}
+  .result-sub {font-size:.79rem;opacity:.68;margin-top:4px;}
+  .compare-header {background:rgba(20,110,105,.07);padding:12px 16px;border-radius:12px;margin:10px 0 15px;}
+  [data-testid="stVerticalBlockBorderWrapper"] {border-radius:14px;}
+  @media(max-width:768px){.hero-card{padding:20px}.hero-title{font-size:1.62rem}}
 </style>
 """, unsafe_allow_html=True)
-st.markdown("""
-<div class="hero"><h1>📍 Znajdź swoje miejsce w Krakowie</h1>
-<p>Wybierz dzielnice i to, na czym Ci zależy. Znajdziemy pięć miejsc na mapie.</p></div>
-""", unsafe_allow_html=True)
 
+st.markdown("""
+<div class="hero-card">
+ <div class="hero-kicker">Kraków · otwarte dane</div>
+ <div class="hero-title">Znajdź okolicę dla siebie.</div>
+ <div class="hero-sub">Wybierz dzielnice i swoje priorytety. Zobacz pięć najlepiej dopasowanych miejsc na mapie.</div>
+</div>
+""", unsafe_allow_html=True)
 
 def simplify(value):
     """Uproszczenie nazwy ulicy podczas lokalnego wyszukiwania."""
@@ -177,27 +196,6 @@ def place_name(row):
     return f"{district} · okolica wskazana na mapie"
 
 
-def describe(row, features, weights):
-    differences = []
-    for group in ACTIVE:
-        if weights[group] <= 0:
-            continue
-        value = row.get(f"area_{group}", np.nan)
-        median = features[f"area_{group}"].median()
-        if pd.notna(value) and pd.notna(median):
-            differences.append((float(value - median), group))
-    if not differences:
-        return "Brak wystarczających danych do opisu."
-    differences.sort(reverse=True)
-    best = differences[0]
-    worst = differences[-1]
-    good = (f"Atutem jest {LABELS[best[1]].lower()}." if best[0] > 0
-            else "Miejsce odpowiada wybranym priorytetom, choć bez wyraźnej przewagi nad miastem.")
-    caution = (f"Słabszą stroną jest {LABELS[worst[1]].lower()}." if worst[0] < 0 else
-               "W wybranych kryteriach nie wypada poniżej mediany Krakowa.")
-    return good + " " + caution
-
-
 def choose_places(scored, selected_districts, how_many=5, min_distance_m=1200):
     """TOP 5 z wybranych dzielnic; wyniki otoczenia policzone dla całego miasta."""
     options = scored.loc[
@@ -233,7 +231,7 @@ def build_map(top, selected=0):
     for i, row in top.reset_index(drop=True).iterrows():
         lat, lon = float(row["lat"]), float(row["lon"])
         bounds.append((lat, lon))
-        color = "#0C8276" if i == selected else "#2976AB"
+        color = "#117A6D" if i == selected else "#256A9B"
         title = html.escape(place_name(row))
         folium.Circle((lat, lon), radius=500, color=color, fill=True,
                       fill_opacity=.12 if i == selected else .04).add_to(m)
@@ -304,31 +302,33 @@ def match_local_address(query, addresses, features):
     return None
 
 
-# -------------------- I. KRYTERIA I DZIELNICE --------------------
-st.subheader("1. Gdzie i czego szukasz?")
-with st.form("preferences"):
-    all_names = list(DISTRICTS.values())
+# ────────────── WYBÓR DZIELNIC I PREFERENCJI ──────────────
+st.markdown('<div class="section-kicker">Krok 01 / Preferencje</div><div class="section-title">Gdzie chcesz szukać?</div>', unsafe_allow_html=True)
+
+all_names = list(DISTRICTS.values())
+with st.form("preferences", border=True):
     chosen_names = st.multiselect(
-        "Wybierz dzielnice (możesz zaznaczyć kilka)",
-        options=all_names, default=all_names,
-        help="Wszystkie 18 dzielnic są dostępne pod jedną nazwą; np. Bronowice występują tylko raz.",
+        "Dzielnice Krakowa", options=all_names, default=all_names,
+        placeholder="Wybierz dzielnice...",
+        help="Możesz wybrać kilka dzielnic. Domyślnie przeszukujemy całe miasto.",
     )
-    st.caption("Jak bardzo liczą się dla Ciebie poniższe rzeczy? 0 — bez znaczenia, 5 — najważniejsze.")
+    st.markdown("**Co jest dla Ciebie ważne?**")
+    st.caption("0 – bez znaczenia  ·  5 – bardzo ważne")
     left, right = st.columns(2, gap="large")
     w = {}
     for i, group in enumerate(ACTIVE):
         with (left if i % 2 == 0 else right):
             w[group] = st.slider(LABELS[group], 0, 5, int(DEFAULT_WEIGHTS[group]))
-    submit = st.form_submit_button("🔎 Znajdź pięć miejsc", type="primary", use_container_width=True)
+    submit = st.form_submit_button("Pokaż miejsca na mapie  →", type="primary", use_container_width=True)
 
 if "search_config" not in st.session_state:
     st.session_state.search_config = (all_names, {g: int(DEFAULT_WEIGHTS[g]) for g in ACTIVE})
 if submit:
     if not chosen_names:
-        st.warning("Wybierz przynajmniej jedną dzielnicę.")
+        st.warning("Wybierz co najmniej jedną dzielnicę.")
         st.stop()
     if not any(w.values()):
-        st.warning("Ustaw co najmniej jeden suwak powyżej zera.")
+        st.warning("Przesuń przynajmniej jeden suwak powyżej zera.")
         st.stop()
     st.session_state.search_config = (chosen_names, w)
     st.session_state.selected_place = 0
@@ -344,71 +344,85 @@ try:
     scored = score_city(features, weights)
     top = choose_places(scored, chosen_names)
 except Exception as exc:
-    st.error("Nie udało się przygotować rekomendacji. Sprawdź plik adresowy i silnik analityczny.")
+    st.error("Nie udało się przygotować mapy. Sprawdź pliki danych i silnik rekomendacji.")
     st.exception(exc)
     st.stop()
 
 if top.empty:
-    st.warning("Nie znaleziono rekomendacji w wybranych dzielnicach. Zaznacz więcej dzielnic.")
+    st.warning("Nie znaleźliśmy miejsc dla tych ustawień. Wybierz więcej dzielnic.")
     st.stop()
 
-# -------------------- II. MAPA I OPISY --------------------
+top = top.reset_index(drop=True)
+selected = min(max(int(st.session_state.get("selected_place", 0)), 0), len(top) - 1)
+
+# ────────────── MAPA I MINIMALISTYCZNA LISTA MIEJSC ──────────────
 st.divider()
-st.subheader(f"2. {len(top)} miejsc dopasowanych do Twoich potrzeb")
-selected = int(st.session_state.get("selected_place", 0))
-selected = min(selected, len(top) - 1)
-map_col, text_col = st.columns([1.7, 1], gap="large")
-with map_col:
-    components.html(build_map(top, selected), height=590, scrolling=False)
-    st.caption("Punkty oznaczają środki analizowanych obszarów, okręgi — otoczenie 500 m."
-               " Podkład mapy wymaga internetu.")
-    with st.expander("Mapa nie wyświetla się?"):
-        st.map(top[["lat", "lon"]], latitude="lat", longitude="lon", zoom=11)
-with text_col:
-    for i, row in top.iterrows():
+st.markdown('<div class="section-kicker">Krok 02 / Wyniki</div><div class="section-title">Twoje miejsca na mapie</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="result-strip">Znaleźliśmy {len(top)} propozycji w wybranych dzielnicach. Kliknij numer na mapie lub wybierz miejsce poniżej.</div>', unsafe_allow_html=True)
+
+components.html(build_map(top, selected), height=535, scrolling=False)
+
+# Mapa Folium jest niezależna od mapy w app.py; awaryjny podgląd nie wymaga kafelków Folium.
+with st.expander("Nie widzisz mapy?"):
+    st.map(top[["lat", "lon"]], latitude="lat", longitude="lon", zoom=11)
+
+cols = st.columns(len(top), gap="small")
+for i, row in top.iterrows():
+    with cols[i]:
         with st.container(border=True):
-            st.markdown(f"**{i+1}. {place_name(row)}**")
-            st.caption(f"Dopasowanie: {score_label(row['area_score'])}")
-            st.write(describe(row, features, weights))
-            if st.button("Pokaż na mapie" if i != selected else "✓ Wybrane miejsce",
-                         key=f"place_{i}", use_container_width=True):
+            st.markdown(f'<span class="number-bubble">{i+1}</span><span class="result-title">{html.escape(str(row["district_name"]))}</span>', unsafe_allow_html=True)
+            street = row.get("street")
+            if pd.notna(street) and str(street).strip():
+                st.markdown(f'<div class="result-sub">okolice ul. {html.escape(str(street))}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div class="result-sub">lokalizacja na mapie</div>', unsafe_allow_html=True)
+            st.markdown(f"**{score_label(row['area_score'])}**")
+            if st.button("Wybrane ✓" if i == selected else "Wyróżnij", key=f"place_{i}",
+                         use_container_width=True, disabled=i == selected):
                 st.session_state.selected_place = i
                 st.rerun()
 
-# -------------------- III. PORÓWNANIE --------------------
+# ────────────── PORÓWNANIE ──────────────
 st.divider()
-st.subheader("3. Porównaj dwie lokalizacje")
-mode = st.radio("Co porównać?", ["Dwie propozycje z mapy", "Dwa adresy w Krakowie"], horizontal=True)
+st.markdown('<div class="section-kicker">Krok 03 / Porównanie</div><div class="section-title">Porównaj dwie lokalizacje</div>', unsafe_allow_html=True)
+mode = st.segmented_control("Wybierz sposób porównania", ["Propozycje z mapy", "Własne adresy"], default="Propozycje z mapy")
 compare = None
-if mode == "Dwie propozycje z mapy":
-    l, r = st.columns(2)
+if mode == "Propozycje z mapy":
+    l, r = st.columns(2, gap="large")
+    options = list(range(len(top)))
+    def format_place(i):
+        return f"{i + 1}. {place_name(top.iloc[i])}"
     with l:
-        a = st.selectbox("Pierwsze miejsce", range(len(top)), format_func=lambda i: place_name(top.iloc[i]))
+        a = st.selectbox("Pierwsza lokalizacja", options, format_func=format_place, key="compare_a")
     with r:
-        b = st.selectbox("Drugie miejsce", range(len(top)), index=min(1, len(top)-1),
-                         format_func=lambda i: place_name(top.iloc[i]))
+        b = st.selectbox("Druga lokalizacja", options, index=min(1, len(top) - 1),
+                         format_func=format_place, key="compare_b")
     if a != b:
         compare = (top.iloc[a], top.iloc[b], place_name(top.iloc[a]), place_name(top.iloc[b]))
+    else:
+        st.info("Wybierz dwa różne miejsca.")
 else:
-    with st.form("addresses"):
-        l, r = st.columns(2)
+    with st.form("addresses", border=True):
+        l, r = st.columns(2, gap="large")
         with l:
-            text_a = st.text_input("Pierwsza ulica i numer", placeholder="np. Bronowicka 104")
+            text_a = st.text_input("Pierwszy adres", placeholder="np. Bronowicka 104")
         with r:
-            text_b = st.text_input("Druga ulica i numer", placeholder="np. Zarzecze 73")
-        do_compare = st.form_submit_button("Porównaj adresy", type="primary")
+            text_b = st.text_input("Drugi adres", placeholder="np. Zarzecze 73")
+        do_compare = st.form_submit_button("Porównaj adresy →", type="primary")
     if do_compare:
         try:
             ids = []
-            for i, text in enumerate((text_a, text_b)):
+            used_online = False
+            for text in (text_a, text_b):
                 if not text.strip():
                     raise ValueError("Uzupełnij obydwa adresy.")
                 idx = match_local_address(text, addresses, scored)
                 if idx is None:
+                    if used_online:
+                        time.sleep(1.1)
                     lat, lon = geocode_address(text)
                     idx = nearest_city_hex(scored, lat, lon)
-                    if i == 0:
-                        time.sleep(1.1)  # Nominatim: nie więcej niż 1 zapytanie na sekundę
+                    used_online = True
                 ids.append(idx)
             st.session_state.address_compare = (text_a, text_b, *ids)
         except ValueError as exc:
@@ -417,27 +431,32 @@ else:
     if "address_compare" in st.session_state:
         text_a, text_b, ia, ib = st.session_state.address_compare
         compare = (scored.iloc[ia], scored.iloc[ib], text_a, text_b)
-        st.caption("Adresy są przypisywane do heksagonów, a nie oceniane jako pojedyncze budynki.")
 
 if compare:
     a, b, label_a, label_b = compare
-    st.write(f"**{label_a}:** {score_label(a['area_score'])}  |  "
-             f"**{label_b}:** {score_label(b['area_score'])}")
+    ca, cb = st.columns(2, gap="large")
+    with ca:
+        with st.container(border=True):
+            st.caption("LOKALIZACJA A")
+            st.markdown(f"**{label_a}**")
+            st.metric("Ocena okolicy", score_label(a["area_score"]))
+    with cb:
+        with st.container(border=True):
+            st.caption("LOKALIZACJA B")
+            st.markdown(f"**{label_b}**")
+            st.metric("Ocena okolicy", score_label(b["area_score"]))
     rows = []
     for group in ACTIVE:
-        if weights[group] == 0:
+        if weights[group] <= 0:
             continue
         av, bv = a.get(f"area_{group}", np.nan), b.get(f"area_{group}", np.nan)
-        rows.append({"Co porównujemy": LABELS[group],
-                     "Pierwsze miejsce": round(float(av) * 100) if pd.notna(av) else None,
-                     "Drugie miejsce": round(float(bv) * 100) if pd.notna(bv) else None})
+        rows.append({
+            "Co porównujemy": LABELS[group],
+            "Lokalizacja A": round(float(av) * 100) if pd.notna(av) else None,
+            "Lokalizacja B": round(float(bv) * 100) if pd.notna(bv) else None,
+        })
     if rows:
         st.dataframe(pd.DataFrame(rows).set_index("Co porównujemy"), use_container_width=True)
-        st.caption("Oceny kryteriów są wskaźnikami modelu w skali 0–100, nie oceną budynku.")
+        st.caption("Wyniki są wskaźnikami otoczenia w skali 0–100, nie oceną konkretnego budynku.")
 
-unresolved = int(features["district_no"].isna().sum())
-if unresolved:
-    st.caption(f"Uwaga: dla {unresolved:,} heksagonów nie udało się wiarygodnie określić "
-               "dzielnicy z punktów adresowych. Nie są używane jako kandydaci w rankingu dzielnicowym.")
-st.caption("Dane o cenach i dostępności dla osób z niepełnosprawnościami nie są obecnie "
-           "uwzględniane w punktacji. Granice dzielnic są tu przybliżane z danych adresowych.")
+st.caption("Podział na dzielnice jest przybliżany na podstawie adresów. Ceny mieszkań, hałas i dostępność dla osób z niepełnosprawnościami nie wpływają obecnie na wyniki.")

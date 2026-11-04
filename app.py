@@ -6,6 +6,7 @@ import branca.colormap as cm
 from streamlit_folium import st_folium
 from folium.plugins import Draw
 from shapely.geometry import shape
+from location_panel import render_location_panel
 
 st.set_page_config(page_title="Moje 15 minut - Kraków Urban DSS", layout="wide")
 
@@ -460,3 +461,8 @@ with col_stats:
                 del st.session_state['obszar_analityczny']
     else:
         st.info("Wyszukaj adres lub użyj narzędzia rysowania na mapie, aby wygenerować podsumowanie obszaru.")
+
+# Panel analizy lokalizacji i rekomendacji
+st.divider()
+
+render_location_panel()

@@ -8,7 +8,7 @@ from folium.plugins import Draw
 from shapely.geometry import shape
 from location_panel import render_location_panel
 
-st.set_page_config(page_title="Moje 15 minut - Kraków Urban DSS", layout="wide")
+st.set_page_config(page_title="Moje 15 minut", layout="wide")
 
 st.title("Moje 15 minut: System Analiz Przestrzennych Krakowa")
 st.caption("Analiza dostępności przestrzennej w oparciu o siatkę heksagonalną i buforowanie liniowo-przestrzenne.")
@@ -155,6 +155,23 @@ with st.sidebar.form(key="search_form"):
     
     submit_button = st.form_submit_button(label="Pokaż na mapie")
 
+st.sidebar.markdown("### Warstwa Wizualna Mapy")
+layers_dict = {
+    'Infrastruktura (Zbiorcza)': 'indeks_infrastruktury',
+    'Przystanki KMK': 'czy_przystanek_do_100m',
+    'Prędkość wiatru (v4m)': 'wentyl_predkosc_v4m',
+    'Potencjał wentylacji': 'wentyl_potencjal',
+    'Hałas Drogowy (dB)': 'max_halas_dB',
+    'Hałas Szynowy (dB)': 'max_halas_szyny_dB',
+    'Dostępność dla niepełnosprawnych': 'score_niepelnosprawni'
+}
+
+selected_label = st.sidebar.selectbox(
+    "Wybierz zmienną do wyrenderowania:",
+    options=list(layers_dict.keys())
+)
+selected_column = layers_dict[selected_label]
+
 st.sidebar.markdown("---")
 
 show_all = st.sidebar.checkbox(
@@ -162,7 +179,6 @@ show_all = st.sidebar.checkbox(
     value=False,
     help="Uwaga: Wyświetlenie całego miasta mocno obciąża przeglądarkę i wydłuża czas renderowania mapy."
 )
-
 if not show_all and selected_address:
     target_grid_id = addresses_df[addresses_df['label'] == selected_address]['GRID_ID'].values[0]
     
@@ -188,24 +204,6 @@ if not show_all and selected_address:
         valid_grid_ids = subset_2180[exact_mask]['GRID_ID'].tolist()
         
         display_gdf = gdf_4326[gdf_4326['GRID_ID'].isin(valid_grid_ids)]
-
-st.sidebar.markdown("### Warstwa Wizualna Mapy")
-layers_dict = {
-    'Infrastruktura (Zbiorcza)': 'indeks_infrastruktury',
-    'Przystanki KMK': 'czy_przystanek_do_100m',
-    'Prędkość wiatru (v4m)': 'wentyl_predkosc_v4m',
-    'Potencjał wentylacji': 'wentyl_potencjal',
-    'Hałas Drogowy (dB)': 'max_halas_dB',
-    'Hałas Szynowy (dB)': 'max_halas_szyny_dB',
-    'Dostępność dla niepełnosprawnych': 'score_niepelnosprawni'
-}
-
-selected_label = st.sidebar.selectbox(
-    "Wybierz zmienną do wyrenderowania:",
-    options=list(layers_dict.keys())
-)
-selected_column = layers_dict[selected_label]
-
 colormap = None
 if selected_column not in ['indeks_infrastruktury', 'czy_przystanek_do_100m']:
     valid_vals = display_gdf[selected_column].dropna()
@@ -281,7 +279,7 @@ with col_map:
     else:
         st.info(f"Mój obszar 15-minutowy: Wczytano heksagony w promieniu {radius_m} m od adresu: {selected_address}. Aby zmienić obszar, wpisz nowy adres w panelu bocznym.")
         
-    st.subheader(f"Mapa Interaktywna (Widocznych heksagonów: {len(display_gdf)})")
+    st.subheader(f"Zaznacz obszar na mapie (Widocznych heksagonów: {len(display_gdf)})")
     map_data = st_folium(m, width="100%", height=600)
 
 with col_stats:
@@ -460,7 +458,7 @@ with col_stats:
             if 'obszar_analityczny' in st.session_state:
                 del st.session_state['obszar_analityczny']
     else:
-        st.info("Wyszukaj adres lub użyj narzędzia rysowania na mapie, aby wygenerować podsumowanie obszaru.")
+        st.info("Użyj narzędzia rysowania na mapie (kwadrat lub poligon w lewym górnym rogu mapy), aby wygenerować podsumowanie obszaru.")
 
 # Panel analizy lokalizacji i rekomendacji
 st.divider()

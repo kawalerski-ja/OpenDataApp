@@ -309,7 +309,7 @@ def render_location_panel():
 
     # ────────────────────────────────────────────────────────── 3. PORÓWNANIE (Korzysta z globalnych wag)
     st.markdown('<div class="k-section">03 · Porównaj dwie lokalizacje</div>', unsafe_allow_html=True)
-    st.markdown('<p class="k-muted">Zobacz, które z dwóch miejsc lepiej odpowiada Twoim obecnym priorytetom.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="k-muted">Zobacz, które z dwóch miejsc lepiej odpowiada Twoim obecnym priorytetom. Jeśli dla danego adresu jest za mało danych, wybierzemy inny w pobliżu, który ma ich komplet.</p>', unsafe_allow_html=True)
     
     comparison_mode = st.radio("Co porównujemy?", ["Propozycje z mapy", "Dwa własne adresy"],
                                horizontal=True, key="comparison_mode_radio")

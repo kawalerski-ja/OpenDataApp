@@ -26,8 +26,7 @@ if str(ROOT) not in sys.path:
 from recommendation_engine import (  # noqa: E402
     DEFAULT_WEIGHTS, DISTRICTS, GROUPS, USER_GROUPS, PROFILE_WEIGHTS,
     prepare_city, load_address_catalog, with_address_districts,
-    hex_ids_from_selection, radius_grid_ids, expand_selection_grid_ids,
-    evaluate_grid_area, score_city, select_places_in_districts,
+    hex_ids_from_selection, evaluate_grid_area, score_city, select_places_in_districts,
 )
 
 
@@ -41,13 +40,11 @@ LABELS = {
 }
 
 
-
 @st.cache_resource(show_spinner="Przygotowujemy dane Krakowa…")
 def city_data():
     base = prepare_city()
     addr = load_address_catalog()
     enriched = with_address_districts(base, addr)
-    # Identyfikator może występować wielokrotnie w bazie adresowej.
     lookup = addr.drop_duplicates(["GRID_ID", "label", "numer_dzie"])[
         ["GRID_ID", "label", "district_name"]].copy().reset_index(drop=True)
     lookup["display"] = lookup["label"] + " · " + lookup["district_name"]
@@ -100,6 +97,7 @@ def place_title(row):
 
 
 def evaluate_for_address(data, grid_id, radius, weights):
+    from recommendation_engine import radius_grid_ids
     ids = radius_grid_ids(data, grid_id, radius)
     return evaluate_grid_area(data, ids, weights)
 
@@ -111,50 +109,20 @@ def result_chart_values(criteria):
     ])
 
 
-def show_result(result, title, radius_label, map_mode="selected", radius=None, center=None):
+def show_result(result, title, radius_label):
     score = result["score"]
-    a, b = st.columns([1, 1.5], gap="large")
-    with a:
-        st.markdown(f'<div class="k-score"><span>{html.escape(title)}</span><div>'
-                    f'<b>{score_text(score)}</b></div><span>Indeks dopasowania do wybranego profilu</span></div>',
-                    unsafe_allow_html=True)
-        st.caption(f"{result['cells']} heksagonów · {radius_label}")
-        st.caption("Wynik to umowny indeks 0–100, a nie procent szans na zadowolenie.")
-        if pd.isna(score):
-            st.warning("Za mało danych, aby wiarygodnie ocenić ten obszar.")
-        detail = result_chart_values(result["criteria"])
-        if not detail.empty:
-            st.dataframe(detail, hide_index=True, use_container_width=True,
-                         column_config={"Ocena": st.column_config.ProgressColumn(
-                             "Ocena (0–100)", min_value=0, max_value=100, format="%d")})
-    with b:
-        draw_area_map(result["frame"], title=title,
-                      radius=radius if map_mode == "address" else None, center=center)
-
-
-def draw_area_map(frame, title, radius=None, center=None):
-    lat, lon = float(frame["lat"].mean()), float(frame["lon"].mean())
-    m = folium.Map([lat, lon], zoom_start=13, tiles="OpenStreetMap", control_scale=True)
-    # Zaznaczamy próbkę środków heksagonów; nie udajemy granic działek/obszaru.
-    view = frame.iloc[::max(1, len(frame) // 450)]
-    for _, r in view.iterrows():
-        folium.CircleMarker([float(r["lat"]), float(r["lon"])], radius=4,
-                            color="#0B8174", fill=True, fill_color="#0B8174",
-                            fill_opacity=.55, weight=1).add_to(m)
-    if center is not None and radius is not None:
-        # Rzeczywisty okrąg w metrach wokół centroidu heksagonu adresowego.
-        folium.Circle(location=center, radius=radius, color="#E95B52",
-                      fill=True, fill_color="#E95B52", fill_opacity=.07,
-                      weight=2, tooltip=f"Promień analizy: {radius} m").add_to(m)
-        folium.Marker(center, tooltip="Wybrany adres",
-                      icon=folium.Icon(color="red", icon="home", prefix="fa")).add_to(m)
-    if len(frame) > 1:
-        bounds = [[float(frame["lat"].min()), float(frame["lon"].min())],
-                  [float(frame["lat"].max()), float(frame["lon"].max())]]
-        m.fit_bounds(bounds, padding=(35, 35), max_zoom=15)
-    if radius is not None:
-        st.caption(f"Czerwony okrąg: promień {radius} m; zielone punkty: centra heksagonów objętych analizą.")
-    components.html(m.get_root().render(), height=415, scrolling=False)
+    st.markdown(f'<div class="k-score"><span>{html.escape(title)}</span><div>'
+                f'<b>{score_text(score)}</b></div><span>Indeks dopasowania do wybranego profilu</span></div>',
+                unsafe_allow_html=True)
+    st.caption(f"{result['cells']} heksagonów · {radius_label}")
+    st.caption("Wynik to umowny indeks 0–100, a nie procent szans na zadowolenie.")
+    if pd.isna(score):
+        st.warning("Za mało danych, aby wiarygodnie ocenić ten obszar.")
+    detail = result_chart_values(result["criteria"])
+    if not detail.empty:
+        st.dataframe(detail, hide_index=True, use_container_width=True,
+                     column_config={"Ocena": st.column_config.ProgressColumn(
+                         "Ocena (0–100)", min_value=0, max_value=100, format="%d")})
 
 
 def draw_top_map(top):
@@ -176,7 +144,6 @@ def draw_top_map(top):
     if len(bounds) > 1:
         m.fit_bounds(bounds, padding=(50, 50), max_zoom=15)
     components.html(m.get_root().render(), height=545, scrolling=False)
-
 
 
 def render_location_panel():
@@ -209,10 +176,9 @@ def render_location_panel():
     <div class="k-header">
       <div class="k-eyebrow">Kraków · Moje 15 minut</div>
       <h1>Odkryj swoje miejsce w Krakowie</h1>
-      <p>Oceń wybrany obszar lub adres, a potem odkryj okolice, które najlepiej odpowiadają Twoim potrzebom.</p>
+      <p>Oceń zaznaczony na mapie obszar, a potem odkryj okolice, które najlepiej odpowiadają Twoim potrzebom.</p>
     </div>
     """, unsafe_allow_html=True)
-
 
     try:
         features, addresses = city_data()
@@ -221,25 +187,14 @@ def render_location_panel():
         st.exception(exc)
         st.stop()
 
-
     # ────────────────────────────────────────────────────────── 1. OCENA MIEJSCA
     st.markdown('<div class="k-section">01 · Oceń wybraną lokalizację</div>', unsafe_allow_html=True)
-    st.markdown('<p class="k-muted">Możesz przeanalizować obszar zaznaczony na mapie albo sprawdzić konkretny adres.</p>', unsafe_allow_html=True)
-    source = st.radio("Co chcesz ocenić?", ["Obszar zaznaczony na mapie", "Konkretny adres"],
-                      horizontal=True, key="analysis_source")
+    st.markdown('<p class="k-muted">Możesz przeanalizować obszar zaznaczony na mapie.</p>', unsafe_allow_html=True)
 
     with st.container(border=True):
-        profile_col, radius_col = st.columns([1, 1], gap="large")
-        with profile_col:
-            profile = st.selectbox("Dla kogo szukasz?", list(PROFILE_WEIGHTS),
-                                   index=1, key="analysis_profile")
-        with radius_col:
-            if source == "Konkretny adres":
-                analysis_radius = st.slider("Promień wokół adresu (m)", 200, 3000, 800, 100,
-                                            key="analysis_radius_address")
-            else:
-                analysis_radius = st.slider("Dodatkowe otoczenie zaznaczenia (m)", 0, 1000, 0, 100,
-                                            key="analysis_radius_draw")
+        profile = st.selectbox("Dla kogo szukasz?", list(PROFILE_WEIGHTS),
+                               index=1, key="analysis_profile")
+        
         if profile == "Własne preferencje":
             custom = {}
             with st.expander("Ustaw własne priorytety", expanded=True):
@@ -252,94 +207,62 @@ def render_location_panel():
         else:
             analysis_weights = full_weights(PROFILE_WEIGHTS[profile])
 
-        analysis_id = None
-        if source == "Konkretny adres":
-            analysis_id = address_picker("analysis_address", addresses)
+        raw_selection = st.session_state.get("obszar_analityczny")
+        try:
+            marked_ids = hex_ids_from_selection(raw_selection)
+        except ValueError as exc:
+            st.warning(str(exc))
+            marked_ids = []
+            
+        available_marked = int(features["GRID_ID"].isin(marked_ids).sum())
+        if available_marked:
+            st.success(f"Znaleziono {available_marked} heksagonów zaznaczonych na mapie.")
         else:
-            raw_selection = st.session_state.get("obszar_analityczny")
-            try:
-                marked_ids = hex_ids_from_selection(raw_selection)
-            except ValueError as exc:
-                st.warning(str(exc))
-                marked_ids = []
-            available_marked = int(features["GRID_ID"].isin(marked_ids).sum())
-            if available_marked:
-                st.success(f"Znaleziono {available_marked} heksagonów zaznaczonych na mapie.")
-            else:
-                st.info("Brak zaznaczonego obszaru. Wróć do „Analiza mapy”, narysuj obszar, a następnie otwórz tę stronę. Możesz też wybrać „Konkretny adres”.")
-        if source == "Konkretny adres" and analysis_id is not None:
-            preview_ids = radius_grid_ids(features, analysis_id, analysis_radius)
-            st.caption(f"Aktualny promień: {analysis_radius} m · heksagony w analizie: {len(preview_ids)}")
-        elif source != "Konkretny adres" and available_marked:
-            preview_ids = expand_selection_grid_ids(features, marked_ids, analysis_radius)
-            st.caption(f"Heksagony po uwzględnieniu bufora: {len(preview_ids)}")
+            st.info("Brak zaznaczonego obszaru. Wróć do „Analiza mapy” i narysuj obszar za pomocą narzędzia prostokąta lub poligonu.")
+
         evaluate_clicked = st.button("Oceń lokalizację", type="primary", use_container_width=True)
 
     if evaluate_clicked:
         if not any(analysis_weights.values()):
             st.warning("Wybierz przynajmniej jedno ważne kryterium.")
-        elif source == "Konkretny adres" and analysis_id is None:
-            st.warning("Wybierz adres z podpowiedzi.")
-        elif source != "Konkretny adres" and not available_marked:
+        elif not available_marked:
             st.warning("Najpierw zaznacz obszar na mapie.")
         else:
             st.session_state["analysis_request"] = {
-                "source": source, "grid_id": analysis_id,
-                "grid_ids": marked_ids if source != "Konkretny adres" else None,
-                "radius": analysis_radius, "weights": analysis_weights, "profile": profile,
+                "grid_ids": marked_ids,
+                "weights": analysis_weights, "profile": profile,
             }
 
     request = st.session_state.get("analysis_request")
     if request:
-        # Po pierwszym kliknięciu przeliczamy WYNIK NA ŻYWO, gdy zmienia się promień
-        # lub profil. Nie pokazujemy przestarzałej oceny innego adresu/zaznaczenia.
-        same_source = request["source"] == source
-        same_target = (request.get("grid_id") == analysis_id if source == "Konkretny adres"
-                       else set(request.get("grid_ids") or []) == set(marked_ids))
-        if same_source and same_target:
+        same_target = set(request.get("grid_ids") or []) == set(marked_ids)
+        if same_target:
             if any(analysis_weights.values()):
-                request = {**request, "radius": analysis_radius,
-                           "weights": analysis_weights, "profile": profile}
+                request = {**request, "weights": analysis_weights, "profile": profile}
                 st.session_state["analysis_request"] = request
         else:
             request = None
-            st.info("Zmieniłeś adres lub zaznaczenie. Kliknij «Oceń lokalizację», aby je przeanalizować.")
+            st.info("Zmieniłeś zaznaczenie na mapie. Kliknij «Oceń lokalizację», aby je przeanalizować.")
 
     if request:
         try:
-            center = None
-            if request["source"] == "Konkretny adres":
-                ids = radius_grid_ids(features, request["grid_id"], request["radius"])
-                point = features.loc[features["GRID_ID"].eq(request["grid_id"])].iloc[0]
-                center = [float(point["lat"]), float(point["lon"])]
-                radius_label = f"promień {request['radius']} m od adresu"
-            else:
-                ids = expand_selection_grid_ids(features, request["grid_ids"], request["radius"])
-                radius_label = ("zaznaczenie bez dodatkowego bufora" if request["radius"] == 0 else
-                                f"zaznaczenie z dodatkowym buforem {request['radius']} m")
+            ids = request["grid_ids"]
+            radius_label = "zaznaczony obszar na mapie"
             area_result = evaluate_grid_area(features, ids, request["weights"], profile=request["profile"])
-            show_result(area_result, f"Ocena dla: {request['profile']}", radius_label,
-                        map_mode="address" if request["source"] == "Konkretny adres" else "selected",
-                        radius=request["radius"], center=center)
+            show_result(area_result, f"Ocena dla: {request['profile']}", radius_label)
             st.caption("Odległości są geometryczne, liczone między centroidami heksagonów. Nie są to izochrony ani realne trasy piesze.")
         except (ValueError, IndexError) as exc:
             st.warning(str(exc))
 
     st.divider()
 
-    # ────────────────────────────────────────────────────────── 2. TOP 5
+    # ────────────────────────────────────────────────────────── 2. TOP 5 (Optymalizacja: przeliczenie tylko po kliknięciu)
     st.markdown('<div class="k-section">02 · Odkryj najlepsze okolice</div>', unsafe_allow_html=True)
     st.markdown('<p class="k-muted">Wybierz miejsca w Krakowie, które chciałbyś rozważyć, i ustaw swoje priorytety.</p>', unsafe_allow_html=True)
 
-    if "recommendation_config" not in st.session_state:
-        st.session_state["recommendation_config"] = {
-            "scope": "Cały Kraków", "districts": list(DISTRICTS.values()),
-            "weights": {g: int(DEFAULT_WEIGHTS[g]) for g in USER_GROUPS},
-        }
-
-    # Wybór zakresu jest POZA formularzem: zmiana ma natychmiast ujawnić pole dzielnic.
     scope = st.radio("Gdzie szukamy?", ["Cały Kraków", "Wybrane dzielnice"],
                      horizontal=True, key="scope_choice")
+    
     def apply_recommendation_profile():
         chosen = st.session_state.get("top5_profile")
         if chosen and chosen != "Własne preferencje":
@@ -348,6 +271,7 @@ def render_location_panel():
 
     st.selectbox("Szybki wybór preferencji (opcjonalnie)", list(PROFILE_WEIGHTS),
                  key="top5_profile", on_change=apply_recommendation_profile)
+
     with st.form("recommendation_form"):
         if scope == "Wybrane dzielnice":
             districts = st.multiselect("Wybierz jedną lub kilka dzielnic", list(DISTRICTS.values()),
@@ -368,27 +292,23 @@ def render_location_panel():
                                                    use_container_width=True)
 
     if recommend_clicked:
-        if not districts:
+        if scope == "Wybrane dzielnice" and not districts:
             st.warning("Wybierz przynajmniej jedną dzielnicę albo przełącz na „Cały Kraków”.")
         elif not any(weights_form.values()):
             st.warning("Ustaw przynajmniej jeden suwak powyżej zera.")
         else:
-            st.session_state["recommendation_config"] = {
-                "scope": scope, "districts": districts, "weights": weights_form}
+            with st.spinner("Przetwarzanie danych i wyszukiwanie najlepszych miejsc..."):
+                recomm_weights = full_weights(weights_form)
+                scored = score_city(features, recomm_weights)
+                target_districts = districts if scope == "Wybrane dzielnice" else list(DISTRICTS.values())
+                top_res = select_places_in_districts(scored, target_districts, count=5)
+                st.session_state["cached_top"] = top_res
+                st.session_state["cached_scope_desc"] = scope if scope == 'Cały Kraków' else ', '.join(target_districts)
+                st.session_state["cached_weights"] = recomm_weights
 
-    config = st.session_state["recommendation_config"]
-    try:
-        recomm_weights = full_weights(config["weights"])
-        scored = score_city(features, recomm_weights)
-        top = select_places_in_districts(scored, config["districts"], count=5)
-    except ValueError as exc:
-        st.warning(str(exc))
-        top = pd.DataFrame()
-
-    if top.empty:
-        st.info("Nie znaleziono miejsc dla tego wyboru. Spróbuj wybrać więcej dzielnic.")
-    else:
-        st.caption(f"Wyniki dla: {config['scope'] if config['scope']=='Cały Kraków' else ', '.join(config['districts'])}")
+    top = st.session_state.get("cached_top", pd.DataFrame())
+    if not top.empty:
+        st.caption(f"Wyniki dla: {st.session_state.get('cached_scope_desc', 'Kraków')}")
         draw_top_map(top)
         columns = st.columns(min(5, len(top)))
         for j, (_, row) in enumerate(top.reset_index(drop=True).iterrows()):
@@ -399,70 +319,96 @@ def render_location_panel():
                         st.caption("ul. " + str(row["street"]))
                     st.metric("Ocena", score_text(row["area_score"]))
         st.caption("Oceny są wskaźnikami modelu, nie procentem satysfakcji. Okręgi na mapie przedstawiają okolice 500 m.")
+    else:
+        st.info("Skonfiguruj preferencje powyżej i kliknij „Pokaż 5 miejsc na mapie”, aby wygenerować rekomendacje.")
 
     st.divider()
 
-    # ────────────────────────────────────────────────────────── 3. PORÓWNANIE
+    # ────────────────────────────────────────────────────────── 3. PORÓWNANIE (Optymalizacja: obliczenia wyłącznie po kliknięciu przycisku)
     st.markdown('<div class="k-section">03 · Porównaj dwie lokalizacje</div>', unsafe_allow_html=True)
     st.markdown('<p class="k-muted">Zobacz, które z dwóch miejsc lepiej odpowiada Twoim priorytetom.</p>', unsafe_allow_html=True)
-    comparison_mode = st.radio("Co porównujemy?", ["Propozycje z mapy", "Dwa własne adresy"],
-                               horizontal=True)
 
-    compare_a = compare_b = None
-    compare_labels = ("", "")
-    compare_radius = 500
-    if comparison_mode == "Propozycje z mapy":
-        if len(top) >= 2:
-            l, r = st.columns(2)
-            fmt = lambda n: f"{n+1}. {place_title(top.iloc[n])}"
-            with l:
-                a = st.selectbox("Pierwsze miejsce", list(range(len(top))), index=0, format_func=fmt)
-            with r:
-                b = st.selectbox("Drugie miejsce", list(range(len(top))), index=1, format_func=fmt)
-            if a != b:
-                compare_a = str(top.iloc[a]["GRID_ID"])
-                compare_b = str(top.iloc[b]["GRID_ID"])
-                compare_labels = (fmt(a), fmt(b))
+    with st.form("comparison_form"):
+        comparison_mode = st.radio("Co porównujemy?", ["Propozycje z mapy", "Dwa własne adresy"],
+                                   horizontal=True)
+        compare_a = compare_b = None
+        compare_labels = ("", "")
+        compare_radius = 500
+
+        if comparison_mode == "Propozycje z mapy":
+            if len(top) >= 2:
+                l, r = st.columns(2)
+                fmt = lambda n: f"{n+1}. {place_title(top.iloc[n])}"
+                with l:
+                    a = st.selectbox("Pierwsze miejsce", list(range(len(top))), index=0, format_func=fmt, key="comp_a_idx")
+                with r:
+                    b = st.selectbox("Drugie miejsce", list(range(len(top))), index=1, format_func=fmt, key="comp_b_idx")
+                if a != b:
+                    compare_a = str(top.iloc[a]["GRID_ID"])
+                    compare_b = str(top.iloc[b]["GRID_ID"])
+                    compare_labels = (fmt(a), fmt(b))
             else:
-                st.info("Wybierz dwa różne miejsca.")
+                st.info("Najpierw wygeneruj co najmniej dwie rekomendacje w sekcji powyżej (02).")
         else:
-            st.info("Potrzebne są co najmniej dwie rekomendacje.")
-    else:
-        l, r = st.columns(2, gap="large")
-        with l:
-            compare_a = address_picker("compare_a", addresses, "Pierwszy adres")
-        with r:
-            compare_b = address_picker("compare_b", addresses, "Drugi adres")
-        compare_radius = st.slider("Promień porównania (m)", 200, 3000, 800, 100)
-        if compare_a and compare_b:
-            a_label = addresses.loc[addresses["GRID_ID"].eq(compare_a), "display"].iloc[0]
-            b_label = addresses.loc[addresses["GRID_ID"].eq(compare_b), "display"].iloc[0]
-            compare_labels = (a_label, b_label)
+            l, r = st.columns(2, gap="large")
+            with l:
+                compare_a = address_picker("compare_a", addresses, "Pierwszy adres")
+            with r:
+                compare_b = address_picker("compare_b", addresses, "Drugi adres")
+            compare_radius = st.slider("Promień porównania (m)", 200, 3000, 800, 100, key="comp_radius_slider")
 
-    if compare_a is not None and compare_b is not None:
-        if compare_a == compare_b:
-            st.info("To ten sam heksagon. Wybierz dwie różne lokalizacje.")
+        compare_clicked = st.form_submit_button("Porównaj lokalizacje", type="primary", use_container_width=True)
+
+    if compare_clicked:
+        if compare_a is not None and compare_b is not None:
+            if compare_a == compare_b:
+                st.warning("To ten sam heksagon. Wybierz dwie różne lokalizacje.")
+                st.session_state.pop("cached_comparison", None)
+            else:
+                current_weights = st.session_state.get("cached_weights", full_weights(DEFAULT_WEIGHTS))
+                left_result = evaluate_for_address(features, compare_a, compare_radius, current_weights)
+                right_result = evaluate_for_address(features, compare_b, compare_radius, current_weights)
+                
+                # Pobierz etykiety dla własnych adresów jeśli tryb to własne adresy
+                if comparison_mode == "Dwa własne adresy":
+                    a_label = addresses.loc[addresses["GRID_ID"].eq(compare_a), "display"].iloc[0] if not addresses.loc[addresses["GRID_ID"].eq(compare_a)].empty else "Lokalizacja A"
+                    b_label = addresses.loc[addresses["GRID_ID"].eq(compare_b), "display"].iloc[0] if not addresses.loc[addresses["GRID_ID"].eq(compare_b)].empty else "Lokalizacja B"
+                    comp_labels_final = (a_label, b_label)
+                else:
+                    comp_labels_final = compare_labels
+
+                st.session_state["cached_comparison"] = {
+                    "left": left_result, "right": right_result, "labels": comp_labels_final, "weights": current_weights
+                }
         else:
-            left_result = evaluate_for_address(features, compare_a, compare_radius, recomm_weights)
-            right_result = evaluate_for_address(features, compare_b, compare_radius, recomm_weights)
-            a_col, b_col = st.columns(2, gap="large")
-            for col, result, title in [(a_col, left_result, compare_labels[0]),
-                                       (b_col, right_result, compare_labels[1])]:
-                with col:
-                    with st.container(border=True):
-                        st.markdown(f"<div class='k-place'>{html.escape(str(title))}</div>", unsafe_allow_html=True)
-                        st.metric("Ocena dopasowania", score_text(result["score"]))
-            rows = []
-            for group in USER_GROUPS:
-                if recomm_weights[group] <= 0:
-                    continue
-                left_value = left_result["criteria"].get(group, np.nan)
-                right_value = right_result["criteria"].get(group, np.nan)
-                rows.append({"Kryterium": LABELS[group], compare_labels[0]:
-                             round(100 * left_value) if pd.notna(left_value) else None,
-                             compare_labels[1]: round(100 * right_value) if pd.notna(right_value) else None})
-            if rows:
-                st.dataframe(pd.DataFrame(rows).set_index("Kryterium"), use_container_width=True)
-            st.caption("Porównanie wykorzystuje aktualne suwaki z sekcji rekomendacji oraz taki sam promień dla obu miejsc.")
+            st.warning("Uzupełnij obie lokalizacje do porównania.")
+
+    # Wyświetlanie zapamiętanych wyników porównania
+    comp_data = st.session_state.get("cached_comparison")
+    if comp_data:
+        left_result = comp_data["left"]
+        right_result = comp_data["right"]
+        comp_labels_final = comp_data["labels"]
+        c_weights = comp_data["weights"]
+
+        a_col, b_col = st.columns(2, gap="large")
+        for col, result, title in [(a_col, left_result, comp_labels_final[0]),
+                                   (b_col, right_result, comp_labels_final[1])]:
+            with col:
+                with st.container(border=True):
+                    st.markdown(f"<div class='k-place'>{html.escape(str(title))}</div>", unsafe_allow_html=True)
+                    st.metric("Ocena dopasowania", score_text(result["score"]))
+        rows = []
+        for group in USER_GROUPS:
+            if c_weights.get(group, 0) <= 0:
+                continue
+            left_value = left_result["criteria"].get(group, np.nan)
+            right_value = right_result["criteria"].get(group, np.nan)
+            rows.append({"Kryterium": LABELS[group], comp_labels_final[0]:
+                         round(100 * left_value) if pd.notna(left_value) else None,
+                         comp_labels_final[1]: round(100 * right_value) if pd.notna(right_value) else None})
+        if rows:
+            st.dataframe(pd.DataFrame(rows).set_index("Kryterium"), use_container_width=True)
+        st.caption("Porównanie wykorzystuje zapisaną konfigurację kryteriów oraz wybrany promień.")
 
     st.caption("Źródła: otwarte dane Krakowa oraz lokalna baza adresowa. Dzielnice pustych heksagonów są przybliżane z adresów; niepewne przypadki pozostają nierozstrzygnięte. Ceny, hałas i wentylacja nie wpływają na punktację.")

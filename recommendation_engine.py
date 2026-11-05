@@ -578,7 +578,8 @@ def prepare_city(path=DATA_FILE, radius_m=RADIUS_M,
     adj = _adjacency(coords, radius_m)
     spatial_kernel = _gaussian_adjacency(adj, coords, radius_m)
 
-    result = pd.DataFrame({
+    # Zbieramy kolumny przed utworzeniem DataFrame, aby uniknąć fragmentacji.
+    result = {
 
         "GRID_ID": gdf["GRID_ID"].astype(str).to_numpy(),
 
@@ -588,7 +589,7 @@ def prepare_city(path=DATA_FILE, radius_m=RADIUS_M,
 
         "neighbors_n": np.asarray(adj.sum(axis=1)).ravel().astype(int),
 
-    })
+    }
 
 
 
@@ -739,6 +740,8 @@ def prepare_city(path=DATA_FILE, radius_m=RADIUS_M,
         if col in gdf:
 
             result[f"raw_{col}"] = gdf[col].to_numpy()
+
+    result = pd.DataFrame(result)
 
     result.attrs["model_notes"] = [
 
@@ -1188,13 +1191,16 @@ def sensitivity_analysis(features, weights, baseline_top, n_simulations=200,
 
                          perturbation=.20, min_distance_m=1200, seed=42,
 
-                         min_coverage=.85, max_price_m2=None):
+                         min_coverage=.85, max_price_m2=None, profile=None):
 
-    """Monte Carlo: identyczna ścieżka score_city -> select_places jak w bazie.
+    """Monte Carlo dla rankingu bazowego ze ścieżki score_city -> select_places.
 
 
 
     Losowe mnożniki wag z jednostajnego [1-p,1+p], dla wag >0.
+
+    Profil podany jawnie lub rozpoznany z wag bazowych pozostaje stały
+    podczas perturbacji. Parametr profile jest opcjonalny.
 
     Trafienie jest dopasowaniem rekomendacji w promieniu 600 m.
 

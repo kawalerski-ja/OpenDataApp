@@ -64,7 +64,7 @@ def address_picker(key, catalog, label="Wyszukaj ulicę lub adres"):
     query = st.text_input(label, placeholder="np. Bronowicka 104", key=f"{key}_query")
     q = normalize(query)
     if len(q) < 2:
-        st.caption("Wpisz co najmniej 2 znaki, aby zobaczyć podpowiedzi.")
+        st.caption("Wpisz co najmniej 2 znaki i kliknij Enter, aby zobaczyć podpowiedzi.")
         return None
     matches = catalog.loc[catalog["search"].str.contains(q, regex=False, na=False)].copy()
     if matches.empty:
@@ -115,7 +115,7 @@ def show_result(result, title, radius_label):
                 f'<b>{score_text(score)}</b></div><span>Indeks dopasowania do wybranego profilu</span></div>',
                 unsafe_allow_html=True)
     st.caption(f"{result['cells']} heksagonów · {radius_label}")
-    st.caption("Wynik to umowny indeks 0–100, a nie procent szans na zadowolenie.")
+    st.caption("Wynik to nasz indeks w skali 0–100.")
     if pd.isna(score):
         st.warning("Za mało danych, aby wiarygodnie ocenić ten obszar.")
     detail = result_chart_values(result["criteria"])
@@ -174,8 +174,8 @@ def render_location_panel():
 
     st.markdown("""
     <div class="k-header">
-      <div class="k-eyebrow">Kraków · Moje 15 minut</div>
-      <h1>Odkryj swoje miejsce w Krakowie</h1>
+      <div class="k-eyebrow">Odkryj Swoje 15 Minut</div>
+      <h1>Znajdź swoje miejsce w Krakowie</h1>
       <p>Oceń zaznaczony na mapie obszar, a potem odkryj okolice, które najlepiej odpowiadają Twoim potrzebom.</p>
     </div>
     """, unsafe_allow_html=True)
@@ -187,13 +187,13 @@ def render_location_panel():
         st.exception(exc)
         st.stop()
 
-    # ────────────────────────────────────────────────────────── 1. OCENA MIEJSCA
-    st.markdown('<div class="k-section">01 · Oceń wybraną lokalizację</div>', unsafe_allow_html=True)
-    st.markdown('<p class="k-muted">Możesz przeanalizować obszar zaznaczony na mapie.</p>', unsafe_allow_html=True)
+    # ────────────────────────────────────────────────────────── 1. OCENA MIEJSCA (GŁÓWNY PUNKT DEFINICJI PREFERENCJI)
+    st.markdown('<div class="k-section">01 · Wybierz profil i oceń lokalizację</div>', unsafe_allow_html=True)
+    st.markdown('<p class="k-muted">Wybierz profil lub ustaw własne wagi – posłużą one do analizy we wszystkich poniższych sekcjach.</p>', unsafe_allow_html=True)
 
     with st.container(border=True):
         profile = st.selectbox("Dla kogo szukasz?", list(PROFILE_WEIGHTS),
-                               index=1, key="analysis_profile")
+                               index=1, key="global_profile")
         
         if profile == "Własne preferencje":
             custom = {}
@@ -202,10 +202,10 @@ def render_location_panel():
                 for j, group in enumerate(USER_GROUPS):
                     with (c1 if j % 2 == 0 else c2):
                         custom[group] = st.slider(LABELS[group], 0, 5, int(DEFAULT_WEIGHTS[group]),
-                                                  key=f"analysis_weight_{group}")
-            analysis_weights = full_weights(custom)
+                                                  key=f"global_weight_{group}")
+            current_weights = full_weights(custom)
         else:
-            analysis_weights = full_weights(PROFILE_WEIGHTS[profile])
+            current_weights = full_weights(PROFILE_WEIGHTS[profile])
 
         raw_selection = st.session_state.get("obszar_analityczny")
         try:
@@ -220,29 +220,29 @@ def render_location_panel():
         else:
             st.info("Brak zaznaczonego obszaru. Wróć do „Analiza mapy” i narysuj obszar za pomocą narzędzia prostokąta lub poligonu.")
 
-        evaluate_clicked = st.button("Oceń lokalizację", type="primary", use_container_width=True)
+        evaluate_clicked = st.button("Oceń zaznaczony obszar", type="primary", use_container_width=True)
 
     if evaluate_clicked:
-        if not any(analysis_weights.values()):
+        if not any(current_weights.values()):
             st.warning("Wybierz przynajmniej jedno ważne kryterium.")
         elif not available_marked:
             st.warning("Najpierw zaznacz obszar na mapie.")
         else:
             st.session_state["analysis_request"] = {
                 "grid_ids": marked_ids,
-                "weights": analysis_weights, "profile": profile,
+                "weights": current_weights, "profile": profile,
             }
 
     request = st.session_state.get("analysis_request")
     if request:
         same_target = set(request.get("grid_ids") or []) == set(marked_ids)
         if same_target:
-            if any(analysis_weights.values()):
-                request = {**request, "weights": analysis_weights, "profile": profile}
+            if any(current_weights.values()):
+                request = {**request, "weights": current_weights, "profile": profile}
                 st.session_state["analysis_request"] = request
         else:
             request = None
-            st.info("Zmieniłeś zaznaczenie na mapie. Kliknij «Oceń lokalizację», aby je przeanalizować.")
+            st.info("Zmieniłeś zaznaczenie na mapie. Kliknij «Oceń zaznaczony obszar», aby je przeanalizować.")
 
     if request:
         try:
@@ -250,27 +250,18 @@ def render_location_panel():
             radius_label = "zaznaczony obszar na mapie"
             area_result = evaluate_grid_area(features, ids, request["weights"], profile=request["profile"])
             show_result(area_result, f"Ocena dla: {request['profile']}", radius_label)
-            st.caption("Odległości są geometryczne, liczone między centroidami heksagonów. Nie są to izochrony ani realne trasy piesze.")
+            st.caption("Odległości są geometryczne, liczone między centroidami heksagonów.")
         except (ValueError, IndexError) as exc:
             st.warning(str(exc))
 
     st.divider()
 
-    # ────────────────────────────────────────────────────────── 2. TOP 5 (Optymalizacja: przeliczenie tylko po kliknięciu)
+    # ────────────────────────────────────────────────────────── 2. TOP 5 (Bez ponownego wyboru suwaków - korzysta z globalnych)
     st.markdown('<div class="k-section">02 · Odkryj najlepsze okolice</div>', unsafe_allow_html=True)
-    st.markdown('<p class="k-muted">Wybierz miejsca w Krakowie, które chciałbyś rozważyć, i ustaw swoje priorytety.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="k-muted">Wyszukaj najlepsze lokalizacje w oparciu o wyżej zdefiniowany profil i preferencje.</p>', unsafe_allow_html=True)
 
     scope = st.radio("Gdzie szukamy?", ["Cały Kraków", "Wybrane dzielnice"],
                      horizontal=True, key="scope_choice")
-    
-    def apply_recommendation_profile():
-        chosen = st.session_state.get("top5_profile")
-        if chosen and chosen != "Własne preferencje":
-            for group in USER_GROUPS:
-                st.session_state[f"recommendation_{group}"] = int(PROFILE_WEIGHTS[chosen][group])
-
-    st.selectbox("Szybki wybór preferencji (opcjonalnie)", list(PROFILE_WEIGHTS),
-                 key="top5_profile", on_change=apply_recommendation_profile)
 
     with st.form("recommendation_form"):
         if scope == "Wybrane dzielnice":
@@ -279,32 +270,24 @@ def render_location_panel():
                                        help="Dzielnice nie są zaznaczone automatycznie. Możesz wybrać tylko jedną.")
         else:
             districts = list(DISTRICTS.values())
-            st.caption("Przeszukamy wszystkie 18 dzielnic. Możesz też zawęzić wyniki do jednej lub kilku.")
-        st.markdown("**Co jest dla Ciebie ważne?**")
-        st.caption("0 — bez znaczenia · 5 — bardzo ważne")
-        weights_form = {}
-        left, right = st.columns(2, gap="large")
-        for j, group in enumerate(USER_GROUPS):
-            with (left if j % 2 == 0 else right):
-                weights_form[group] = st.slider(LABELS[group], 0, 5, int(DEFAULT_WEIGHTS[group]),
-                                                key=f"recommendation_{group}")
+            st.caption("Przeszukamy wszystkie 18 dzielnic.")
+            
         recommend_clicked = st.form_submit_button("Pokaż 5 miejsc na mapie", type="primary",
                                                    use_container_width=True)
 
     if recommend_clicked:
         if scope == "Wybrane dzielnice" and not districts:
             st.warning("Wybierz przynajmniej jedną dzielnicę albo przełącz na „Cały Kraków”.")
-        elif not any(weights_form.values()):
-            st.warning("Ustaw przynajmniej jeden suwak powyżej zera.")
+        elif not any(current_weights.values()):
+            st.warning("Ustaw przynajmniej jeden suwak powyżej zera w sekcji 01.")
         else:
             with st.spinner("Przetwarzanie danych i wyszukiwanie najlepszych miejsc..."):
-                recomm_weights = full_weights(weights_form)
-                scored = score_city(features, recomm_weights)
+                scored = score_city(features, current_weights)
                 target_districts = districts if scope == "Wybrane dzielnice" else list(DISTRICTS.values())
                 top_res = select_places_in_districts(scored, target_districts, count=5)
                 st.session_state["cached_top"] = top_res
                 st.session_state["cached_scope_desc"] = scope if scope == 'Cały Kraków' else ', '.join(target_districts)
-                st.session_state["cached_weights"] = recomm_weights
+                st.session_state["cached_weights"] = current_weights
 
     top = st.session_state.get("cached_top", pd.DataFrame())
     if not top.empty:
@@ -320,17 +303,18 @@ def render_location_panel():
                     st.metric("Ocena", score_text(row["area_score"]))
         st.caption("Oceny są wskaźnikami modelu, nie procentem satysfakcji. Okręgi na mapie przedstawiają okolice 500 m.")
     else:
-        st.info("Skonfiguruj preferencje powyżej i kliknij „Pokaż 5 miejsc na mapie”, aby wygenerować rekomendacje.")
+        st.info("Kliknij „Pokaż 5 miejsc na mapie”, aby wygenerować rekomendacje na podstawie bieżącego profilu.")
 
     st.divider()
 
-    # ────────────────────────────────────────────────────────── 3. PORÓWNANIE (Optymalizacja: obliczenia wyłącznie po kliknięciu przycisku)
+    # ────────────────────────────────────────────────────────── 3. PORÓWNANIE (Korzysta z globalnych wag)
     st.markdown('<div class="k-section">03 · Porównaj dwie lokalizacje</div>', unsafe_allow_html=True)
-    st.markdown('<p class="k-muted">Zobacz, które z dwóch miejsc lepiej odpowiada Twoim priorytetom.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="k-muted">Zobacz, które z dwóch miejsc lepiej odpowiada Twoim obecnym priorytetom.</p>', unsafe_allow_html=True)
+    
+    comparison_mode = st.radio("Co porównujemy?", ["Propozycje z mapy", "Dwa własne adresy"],
+                               horizontal=True, key="comparison_mode_radio")
 
     with st.form("comparison_form"):
-        comparison_mode = st.radio("Co porównujemy?", ["Propozycje z mapy", "Dwa własne adresy"],
-                                   horizontal=True)
         compare_a = compare_b = None
         compare_labels = ("", "")
         compare_radius = 500
@@ -348,7 +332,7 @@ def render_location_panel():
                     compare_b = str(top.iloc[b]["GRID_ID"])
                     compare_labels = (fmt(a), fmt(b))
             else:
-                st.info("Najpierw wygeneruj co najmniej dwie rekomendacje w sekcji powyżej (02).")
+                st.info("Najpierw wygeneruj rekomendacje w sekcji powyżej (02).")
         else:
             l, r = st.columns(2, gap="large")
             with l:
@@ -365,11 +349,9 @@ def render_location_panel():
                 st.warning("To ten sam heksagon. Wybierz dwie różne lokalizacje.")
                 st.session_state.pop("cached_comparison", None)
             else:
-                current_weights = st.session_state.get("cached_weights", full_weights(DEFAULT_WEIGHTS))
                 left_result = evaluate_for_address(features, compare_a, compare_radius, current_weights)
                 right_result = evaluate_for_address(features, compare_b, compare_radius, current_weights)
                 
-                # Pobierz etykiety dla własnych adresów jeśli tryb to własne adresy
                 if comparison_mode == "Dwa własne adresy":
                     a_label = addresses.loc[addresses["GRID_ID"].eq(compare_a), "display"].iloc[0] if not addresses.loc[addresses["GRID_ID"].eq(compare_a)].empty else "Lokalizacja A"
                     b_label = addresses.loc[addresses["GRID_ID"].eq(compare_b), "display"].iloc[0] if not addresses.loc[addresses["GRID_ID"].eq(compare_b)].empty else "Lokalizacja B"
@@ -383,7 +365,6 @@ def render_location_panel():
         else:
             st.warning("Uzupełnij obie lokalizacje do porównania.")
 
-    # Wyświetlanie zapamiętanych wyników porównania
     comp_data = st.session_state.get("cached_comparison")
     if comp_data:
         left_result = comp_data["left"]
@@ -409,6 +390,6 @@ def render_location_panel():
                          comp_labels_final[1]: round(100 * right_value) if pd.notna(right_value) else None})
         if rows:
             st.dataframe(pd.DataFrame(rows).set_index("Kryterium"), use_container_width=True)
-        st.caption("Porównanie wykorzystuje zapisaną konfigurację kryteriów oraz wybrany promień.")
+        st.caption("Porównanie wykorzystuje konfigurację kryteriów z sekcji 01 oraz wybrany promień.")
 
-    st.caption("Źródła: otwarte dane Krakowa oraz lokalna baza adresowa. Dzielnice pustych heksagonów są przybliżane z adresów; niepewne przypadki pozostają nierozstrzygnięte. Ceny, hałas i wentylacja nie wpływają na punktację.")
+    st.caption("Źródła: Otwarte Dane miasta Krakowa oraz lokalna baza adresowa. W przypadku niewielkiej ilości heksagonów w pobliżu konkretnego adresu brany jest najbliższy z pełnymi danymi. Ceny, hałas i wentylacja nie wpływają na punktację.")

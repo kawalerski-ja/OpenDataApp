@@ -392,4 +392,4 @@ def render_location_panel():
             st.dataframe(pd.DataFrame(rows).set_index("Kryterium"), use_container_width=True)
         st.caption("Porównanie wykorzystuje konfigurację kryteriów z sekcji 01 oraz wybrany promień.")
 
-    st.caption("Źródła: Otwarte Dane miasta Krakowa oraz lokalna baza adresowa. W przypadku niewielkiej ilości heksagonów w pobliżu konkretnego adresu brany jest najbliższy z pełnymi danymi. Ceny, hałas i wentylacja nie wpływają na punktację.")
+    st.caption("Źródła: Otwarte Dane UM Kraków oraz MSIP Kraków. W przypadku niewielkiej ilości heksagonów w pobliżu konkretnego adresu brany jest najbliższy z pełnymi danymi. Ceny, hałas i wentylacja nie wpływają na punktację.")
